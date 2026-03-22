@@ -4,7 +4,7 @@ import { FilterablePokemonTable } from './PokemonTable';
 import { PokemonTeam } from './PokemonTeam';
 import { DataContext, TeamContext } from './AppContext';
 import { flattenDamageRelations } from './utilities';
-import type { APIData, Pokemon, Type } from './types';
+import type { APIData, Pokemon, Type, Version } from './types';
 
 export default function App() {
   return (
@@ -20,6 +20,7 @@ export default function App() {
 const DataContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [allPokemon, setAllPokemon] = useState<APIData[]>([]);
 	const [allTypes, setAllTypes] = useState<Type[]>([]);
+  const [allVersions, setAllVersions] = useState<Version[]>([]);
 
   const TYPE_COUNT = 18;
 
@@ -44,14 +45,49 @@ const DataContextProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       setAllTypes(types);
+
+      const vgListResponse = await fetch('https://pokeapi.co/api/v2/version-group?limit=100');
+      const vgListJson = await vgListResponse.json();
+
+      const versions: Version[] = await Promise.all(
+        vgListJson.results.map(async (vg: APIData) => {
+          const vgResponse = await fetch(vg.url);
+          const vgJson = await vgResponse.json();
+
+          const displayName = vgJson.versions
+            .map((v: { name: string }) => v.name.charAt(0).toUpperCase() + v.name.slice(1))
+            .join(' / ');
+
+          const pokemonSets: Set<string>[] = await Promise.all(
+            vgJson.pokedexes.map(async (pdx: { url: string }) => {
+              const pdxResponse = await fetch(pdx.url);
+              const pdxJson = await pdxResponse.json();
+              return new Set<string>(
+                pdxJson.pokemon_entries.map((e: { pokemon_species: { name: string } }) => e.pokemon_species.name)
+              );
+            })
+          );
+
+          const pokemon = new Set<string>();
+          for (const s of pokemonSets) {
+            for (const name of s) {
+              pokemon.add(name);
+            }
+          }
+
+          return { name: displayName, pokemon };
+        })
+      );
+
+      setAllVersions(versions);
     }
 
     fetchData();
   }, []);
 
   const contextValue = useMemo(() => ({
-    allPokemon, allTypes
-  }), [allPokemon, allTypes]);
+    allPokemon, allTypes, allVersions
+  }), [allPokemon, allTypes, allVersions]);
 
   return (
     <DataContext.Provider value={contextValue}>

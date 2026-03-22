@@ -10,6 +10,11 @@ export interface Pokemon {
   types: Type[]
 }
 
+export interface Version {
+  name: string;
+  pokemon: Set<string>;
+}
+
 export interface Type {
   id: number,
   name: string,

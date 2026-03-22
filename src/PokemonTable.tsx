@@ -62,6 +62,29 @@ function TypeFilterDropdown({ value, onChange, placeholder, id }: {
   )
 }
 
+function VersionFilterDropdown({ value, onChange }: {
+  value: string,
+  onChange: (text: string) => void,
+}) {
+  const { allVersions } = useContext(DataContext);
+
+  return (
+    <div className="w-full">
+      <input
+        type="text"
+        list="version-filter"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Version"
+        className="w-full px-4 py-2 my-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pokemon-red"
+      />
+      <datalist id="version-filter">
+        {allVersions.map((v) => <option key={v.name} value={v.name} />)}
+      </datalist>
+    </div>
+  );
+}
+
 function Paginate({ page, pageCount, onPageChange }: {
   page: number,
   pageCount: number,
@@ -140,8 +163,9 @@ export function FilterablePokemonTable() {
   const [filterText, setFilterText] = useState('');
   const [type1, setType1] = useState('');
   const [type2, setType2] = useState('');
+  const [version, setVersion] = useState('');
   const [page, setPage] = useState(0);
-  const { allPokemon, allTypes } = useContext(DataContext);
+  const { allPokemon, allTypes, allVersions } = useContext(DataContext);
 
   const POKEMON_PER_PAGE = 10;
 
@@ -160,8 +184,14 @@ export function FilterablePokemonTable() {
     setPage(0);
   }
 
+  function handleVersionChange(text: string) {
+    setVersion(text);
+    setPage(0);
+  }
+
   const matchedType1 = allTypes.find((t) => t.name.toLowerCase() === type1.toLowerCase());
   const matchedType2 = allTypes.find((t) => t.name.toLowerCase() === type2.toLowerCase());
+  const matchedVersion = allVersions.find((v) => v.name.toLowerCase() === version.toLowerCase());
 
   // Filter out special pokemon (id > 10000)
   const filteredPokemon = allPokemon.filter((p) => {
@@ -170,6 +200,7 @@ export function FilterablePokemonTable() {
     if (!p.name.toLowerCase().includes(filterText.toLowerCase())) return false;
     if (matchedType1 && !matchedType1.pokemon.has(p.name)) return false;
     if (matchedType2 && !matchedType2.pokemon.has(p.name)) return false;
+    if (matchedVersion && !matchedVersion.pokemon.has(p.name)) return false;
     return true;
   });
 
@@ -181,6 +212,7 @@ export function FilterablePokemonTable() {
       <div className="flex gap-2">
         <TypeFilterDropdown value={type1} onChange={handleType1Change} placeholder="Type 1" id="type1" />
         <TypeFilterDropdown value={type2} onChange={handleType2Change} placeholder="Type 2" id="type2" />
+        <VersionFilterDropdown value={version} onChange={handleVersionChange} />
       </div>
       <PokemonTable data={paginatedPokemon} />
       <Paginate page={page} pageCount={Math.ceil(filteredPokemon.length / POKEMON_PER_PAGE)} onPageChange={setPage} />
