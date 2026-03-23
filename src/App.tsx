@@ -10,8 +10,10 @@ export default function App() {
   return (
     <DataContextProvider>
       <TeamContextProvider>
-        <PokemonTeam />
-        <FilterablePokemonTable />
+        <div className="flex flex-wrap justify-center items-start">
+          <PokemonTeam />
+          <FilterablePokemonTable />
+        </div>
       </TeamContextProvider>
     </DataContextProvider>
   )

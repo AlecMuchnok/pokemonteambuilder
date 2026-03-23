@@ -159,15 +159,36 @@ function PokemonTable({ data, pokedex }: { data: APIData[], pokedex: Pokedex | n
   )
 }
 
+function calcRowsPerPage() {
+  // Each row is h-20 (80px). ~260px overhead for header, filters, pagination, and root padding.
+  return Math.max(5, Math.floor((window.innerHeight - 260) / 80));
+}
+
 export function FilterablePokemonTable() {
   const [filterText, setFilterText] = useState('');
   const [type1, setType1] = useState('');
   const [type2, setType2] = useState('');
   const [pokedex, setPokedex] = useState('National');
   const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(calcRowsPerPage);
   const { allPokemon, allTypes, allPokedexes, idToSpecies } = useContext(DataContext);
 
-  const POKEMON_PER_PAGE = 10;
+  useEffect(() => {
+    function handleResize() {
+      const newRows = calcRowsPerPage();
+      setRowsPerPage((prevRows) => {
+        if (newRows === prevRows) return prevRows;
+        // Set the page to the one that has the previous first row's pokemon
+        setPage((prevPage) => {
+          const firstIndex = prevPage * prevRows;
+          return Math.floor(firstIndex / newRows);
+        });
+        return newRows;
+      });
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   function handleFilterTextChange(text: string) {
     setFilterText(text);
@@ -216,10 +237,10 @@ export function FilterablePokemonTable() {
       })
     : filteredPokemon;
 
-  const paginatedPokemon = sortedPokemon.slice(page * POKEMON_PER_PAGE, (page + 1) * POKEMON_PER_PAGE);
+  const paginatedPokemon = sortedPokemon.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 
   return (
-    <div className="w-3/4 mx-auto">
+    <div className="flex-1 min-w-[400px] px-4">
       <FilterInput filterText={filterText} onFilterTextChange={handleFilterTextChange} />
       <div className="flex gap-2">
         <PokedexFilterDropdown value={pokedex} onChange={handlePokedexChange} />
@@ -227,7 +248,7 @@ export function FilterablePokemonTable() {
         <TypeFilterDropdown value={type2} onChange={handleType2Change} placeholder="Type 2" id="type2" />
       </div>
       <PokemonTable data={paginatedPokemon} pokedex={matchedPokedex} />
-      <Paginate page={page} pageCount={Math.ceil(sortedPokemon.length / POKEMON_PER_PAGE)} onPageChange={setPage} />
+      <Paginate page={page} pageCount={Math.ceil(sortedPokemon.length / rowsPerPage)} onPageChange={setPage} />
     </div>
   )
 }

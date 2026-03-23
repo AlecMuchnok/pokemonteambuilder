@@ -6,14 +6,14 @@ export function PokemonBox({ pokemon }: { pokemon: Pokemon | null }) {
   const { onPokemonClick } = useContext(TeamContext);
 
   if (!pokemon) return (
-    <div className="w-50 px-5 m-4 mx-auto">
+    <div className="w-50 px-5 mx-4 my-1">
       <div className="h-40 border-2 border-gray-300 rounded-lg p-4" />
       <div className="w-full h-8 flex mx-auto py-2" />
     </div>
   )  
 
 	return (
-    <div className="w-50 px-5 m-4 mx-auto">
+    <div className="w-50 px-5 mx-4 my-1">
       <div className={`h-40 border-2 border-gray-300 rounded-lg p-4 ${pokemon ? "hover:bg-gray-100" : ""}`} onClick={() => pokemon && onPokemonClick(pokemon)}>
         <img className="w-full h-full" src={pokemon.sprite} alt={pokemon.species} />
       </div>
@@ -100,7 +100,7 @@ export function PokemonTeam() {
   const { team } = useContext(TeamContext)
 
   return (
-    <div className="w-full px-30 flex flex-wrap items-center">
+    <div className="px-8 flex flex-wrap items-center justify-center self-center">
       <div className="w-120 grid grid-cols-2 mx-auto">
         <PokemonBox key='0' pokemon={team[0] || null} />
         <PokemonBox key='1' pokemon={team[1] || null} />
