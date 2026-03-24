@@ -3,167 +3,6 @@ import type { APIData, Pokemon, Pokedex, Type } from './types';
 import { DataContext, TeamContext } from './AppContext';
 import { formatPokemonName } from './utilities';
 
-function PokemonRow({ pokemon, displayNumber }: { pokemon: Pokemon, displayNumber: number }) {
-  const { team, onPokemonClick } = useContext(TeamContext);
-
-  if (!pokemon) return (
-    <tr className="h-20 hover:bg-gray-100"></tr>
-  );
-
-  return (
-    <tr key={pokemon.id} className={(team.some((p) => p.id === pokemon.id) ? "h-20 bg-gray-300 hover:bg-gray-400" : "h-20 hover:bg-gray-100")} onClick={() => onPokemonClick(pokemon)}>
-      <td>{displayNumber}</td>
-      <td className="align-middle"><img className="max-w-15 max-h-15 mx-auto object-contain" src={pokemon.sprite} alt={pokemon.species} /></td>
-      <td>{formatPokemonName(pokemon.species)}</td>
-      <td><div className="h-full min-w-60 mx-1 flex items-center justify-center">{pokemon.types.map((type) => <img key={type.id} className="max-w-30 max-h-5 object-contain" src={type.sprite} alt={type.name} />)}</div></td>
-    </tr>
-  )
-}
-
-function FilterInput({ filterText, onFilterTextChange, }: {
-  filterText?: string,
-  onFilterTextChange: (text: string) => void
-}) {
-  return (
-    <form>
-      <input
-        type="text"
-        value={filterText}
-        onChange={(e) => onFilterTextChange(e.target.value)}
-        placeholder="Search by name"
-        className={`w-full px-4 py-2 my-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pokemon-red`}
-      />
-    </form>
-  )
-}
-
-function TypeFilterDropdown({ value, onChange, placeholder, id }: {
-  value: string,
-  onChange: (text: string) => void,
-  placeholder: string,
-  id: string,
-}) {
-  const { allTypes } = useContext(DataContext);
-  const typeNames = allTypes.map((t) => t.name);
-
-  return (
-    <div className="w-full">
-      <input
-        type="text"
-        list={id}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full px-4 py-2 my-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pokemon-red"
-      />
-      <datalist id={id}>
-        {typeNames.map((name) => <option key={name} value={name.charAt(0).toUpperCase() + name.slice(1)} />)}
-      </datalist>
-    </div>
-  )
-}
-
-function PokedexFilterDropdown({ value, onChange }: {
-  value: string,
-  onChange: (text: string) => void,
-}) {
-  const { allPokedexes } = useContext(DataContext);
-
-  return (
-    <div className="w-full">
-      <input
-        type="text"
-        list="pokedex-filter"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full px-4 py-2 my-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pokemon-red"
-      />
-      <datalist id="pokedex-filter">
-        {allPokedexes.map((p: Pokedex) => <option key={p.name} value={p.name} />)}
-      </datalist>
-    </div>
-  );
-}
-
-function Paginate({ page, pageCount, onPageChange }: {
-  page: number,
-  pageCount: number,
-  onPageChange: (page: number) => void,
-}) {
-  return (
-    <div className="my-2">
-      <button onClick={() => onPageChange(page - 1)} disabled={page === 0}>Previous</button>
-      <span className="px-4 py-2 mx-1">{page + 1} / {pageCount}</span>
-      <button onClick={() => onPageChange(page + 1)} disabled={page === pageCount - 1}>Next</button>
-    </div>
-  );
-};
-
-function PokemonTable({ data, pokedex }: { data: APIData[], pokedex: Pokedex | null }) {
-  const [pokemon, setPokemon] = useState<Pokemon[]>([]);
-  const { allTypes } = useContext(DataContext);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      if (allTypes.length === 0) {
-        return;
-      }
-
-      const pokemonList : Pokemon[] = [];
-
-      for (const p of data) {
-        const response = await fetch(p.url);
-        const json = await response.json();
-
-        const types : Type[] = [];
-
-        for (const jsonType of json.types) {
-          const type = allTypes.find((t) => t.name === jsonType.type.name);
-
-          if (type)
-            types.push(type);
-        }
-
-        pokemonList.push({
-          id: json.id,
-          species: json.species.name,
-          sprite: json.sprites.front_default,
-          types: types,
-        });
-      }
-
-      setPokemon(pokemonList);
-    }
-
-    fetchData();
-  }, [data, allTypes]);
-
-  return (
-    <div className="border border-table-line rounded-lg overflow-hidden">
-      <table className="divide-y w-full table-fixed mx-auto">
-        <thead className={`bg-pokemon-red text-gray-100`}>
-          <tr>
-            <th className="px-1 py-2 w-[15%]">Number</th>
-            <th className="px-1 py-2 w-[15%]">Sprite</th>
-            <th className="px-1 py-2 w-[25%]">Name</th>
-            <th className="px-1 py-2 w-[45%]">Type</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {pokemon.map((p) => (
-            <PokemonRow key={p.species} pokemon={p} displayNumber={pokedex?.pokemon.get(p.species) ?? p.id} />
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-function calcRowsPerPage() {
-  // Each row is h-20 (80px). ~260px overhead for header, filters, pagination, and root padding.
-  return Math.max(5, Math.floor((window.innerHeight - 260) / 80));
-}
-
 export function FilterablePokemonTable() {
   const [filterText, setFilterText] = useState('');
   const [type1, setType1] = useState('');
@@ -252,3 +91,164 @@ export function FilterablePokemonTable() {
     </div>
   )
 }
+
+function calcRowsPerPage() {
+  // Each row is h-20 (80px). ~260px overhead for header, filters, pagination, and root padding.
+  return Math.max(5, Math.floor((window.innerHeight - 260) / 80));
+}
+
+function FilterInput({ filterText, onFilterTextChange, }: {
+  filterText?: string,
+  onFilterTextChange: (text: string) => void
+}) {
+  return (
+    <form>
+      <input
+        type="text"
+        value={filterText}
+        onChange={(e) => onFilterTextChange(e.target.value)}
+        placeholder="Search by name"
+        className={`w-full px-4 py-2 my-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pokemon-red`}
+      />
+    </form>
+  )
+}
+
+function PokedexFilterDropdown({ value, onChange }: {
+  value: string,
+  onChange: (text: string) => void,
+}) {
+  const { allPokedexes } = useContext(DataContext);
+
+  return (
+    <div className="w-full">
+      <input
+        type="text"
+        list="pokedex-filter"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-4 py-2 my-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pokemon-red"
+      />
+      <datalist id="pokedex-filter">
+        {allPokedexes.map((p: Pokedex) => <option key={p.name} value={p.name} />)}
+      </datalist>
+    </div>
+  );
+}
+
+function TypeFilterDropdown({ value, onChange, placeholder, id }: {
+  value: string,
+  onChange: (text: string) => void,
+  placeholder: string,
+  id: string,
+}) {
+  const { allTypes } = useContext(DataContext);
+  const typeNames = allTypes.map((t) => t.name);
+
+  return (
+    <div className="w-full">
+      <input
+        type="text"
+        list={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full px-4 py-2 my-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pokemon-red"
+      />
+      <datalist id={id}>
+        {typeNames.map((name) => <option key={name} value={name.charAt(0).toUpperCase() + name.slice(1)} />)}
+      </datalist>
+    </div>
+  )
+}
+
+function PokemonTable({ data, pokedex }: { data: APIData[], pokedex: Pokedex | null }) {
+  const [pokemon, setPokemon] = useState<Pokemon[]>([]);
+  const { allTypes } = useContext(DataContext);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (allTypes.length === 0) {
+        return;
+      }
+
+      const pokemonList : Pokemon[] = [];
+
+      for (const p of data) {
+        const response = await fetch(p.url);
+        const json = await response.json();
+
+        const types : Type[] = [];
+
+        for (const jsonType of json.types) {
+          const type = allTypes.find((t) => t.name === jsonType.type.name);
+
+          if (type)
+            types.push(type);
+        }
+
+        pokemonList.push({
+          id: json.id,
+          species: json.species.name,
+          sprite: json.sprites.front_default,
+          types: types,
+        });
+      }
+
+      setPokemon(pokemonList);
+    }
+
+    fetchData();
+  }, [data, allTypes]);
+
+  return (
+    <div className="border border-table-line rounded-lg overflow-hidden">
+      <table className="divide-y w-full table-fixed mx-auto">
+        <thead className={`bg-pokemon-red text-gray-100`}>
+          <tr>
+            <th className="px-1 py-2 w-[15%]">Number</th>
+            <th className="px-1 py-2 w-[15%]">Sprite</th>
+            <th className="px-1 py-2 w-[25%]">Name</th>
+            <th className="px-1 py-2 w-[45%]">Type</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y">
+          {pokemon.map((p) => (
+            <PokemonRow key={p.species} pokemon={p} displayNumber={pokedex?.pokemon.get(p.species) ?? p.id} />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function PokemonRow({ pokemon, displayNumber }: { pokemon: Pokemon, displayNumber: number }) {
+  const { team, onPokemonClick } = useContext(TeamContext);
+
+  if (!pokemon) return (
+    <tr className="h-20 hover:bg-gray-100"></tr>
+  );
+
+  return (
+    <tr key={pokemon.id} className={(team.some((p) => p.id === pokemon.id) ? "h-20 bg-gray-300 hover:bg-gray-400" : "h-20 hover:bg-gray-100")} onClick={() => onPokemonClick(pokemon)}>
+      <td>{displayNumber}</td>
+      <td className="align-middle"><img className="max-w-15 max-h-15 mx-auto object-contain" src={pokemon.sprite} alt={pokemon.species} /></td>
+      <td>{formatPokemonName(pokemon.species)}</td>
+      <td><div className="h-full min-w-60 mx-1 flex items-center justify-center">{pokemon.types.map((type) => <img key={type.id} className="max-w-30 max-h-5 object-contain" src={type.sprite} alt={type.name} />)}</div></td>
+    </tr>
+  )
+}
+
+function Paginate({ page, pageCount, onPageChange }: {
+  page: number,
+  pageCount: number,
+  onPageChange: (page: number) => void,
+}) {
+  return (
+    <div className="my-2">
+      <button onClick={() => onPageChange(page - 1)} disabled={page === 0}>Previous</button>
+      <span className="px-4 py-2 mx-1">{page + 1} / {pageCount}</span>
+      <button onClick={() => onPageChange(page + 1)} disabled={page === pageCount - 1}>Next</button>
+    </div>
+  );
+};

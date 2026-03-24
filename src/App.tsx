@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import './App.css'
 import { FilterablePokemonTable } from './PokemonTable';
 import { PokemonTeam } from './PokemonTeam';
+import { TypeRelations } from './TypeRelations';
 import { DataContext, TeamContext } from './AppContext';
 import { flattenDamageRelations } from './utilities';
 import type { APIData, Pokemon, Type, Pokedex } from './types';
@@ -12,6 +13,7 @@ export default function App() {
       <TeamContextProvider>
         <div className="flex flex-wrap justify-center items-start">
           <PokemonTeam />
+          <TypeRelations />
           <FilterablePokemonTable />
         </div>
       </TeamContextProvider>
