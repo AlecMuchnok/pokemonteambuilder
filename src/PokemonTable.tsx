@@ -7,7 +7,7 @@ export function FilterablePokemonTable() {
   const [filterText, setFilterText] = useState('');
   const [type1, setType1] = useState('');
   const [type2, setType2] = useState('');
-  const [pokedex, setPokedex] = useState('National');
+  const [pokedex, setPokedex] = useState('');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(calcRowsPerPage);
   const { allPokemon, allTypes, allPokedexes, idToSpecies } = useContext(DataContext);
@@ -51,7 +51,7 @@ export function FilterablePokemonTable() {
 
   const matchedType1 = allTypes.find((t) => t.name.toLowerCase() === type1.toLowerCase());
   const matchedType2 = allTypes.find((t) => t.name.toLowerCase() === type2.toLowerCase());
-  const matchedPokedex = allPokedexes.find((d) => d.name.toLowerCase() === pokedex.toLowerCase()) ?? null;
+  const matchedPokedex = allPokedexes.find((d) => d.name.toLowerCase() === (pokedex || 'national').toLowerCase()) ?? null;
 
   // Filter out special pokemon (id > 10000)
   const filteredPokemon = allPokemon.filter((p) => {
@@ -129,6 +129,7 @@ function PokedexFilterDropdown({ value, onChange }: {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={(e) => e.target.select()}
+        placeholder="Pokedex"
         className="w-full px-4 py-2 my-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pokemon-red"
       />
       <datalist id="pokedex-filter">
