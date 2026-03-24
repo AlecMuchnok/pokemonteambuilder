@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import type { Type } from './types';
 import { DataContext, TeamContext } from './AppContext';
 
-export function TypeRelations() {
+export function TeamCoverage() {
   const [teamCoverage, setTeamCoverage] = useState<Map<string, Coverage>>(new Map());
   const [hoveredType, setHoveredType] = useState<Type | null>(null);
   const { team } = useContext(TeamContext);
@@ -61,8 +61,8 @@ export function TypeRelations() {
 
           return (
             <div className="flex items-center m-1" key={type.name}>
-              <div className={`w-5 h-5 border-2 border-gray-300 rounded-lg mx-1 ${offenseColor}`} />
-              <div className={`w-5 h-5 border-2 border-gray-300 rounded-lg mx-1 ${defenseColor}`} />
+              <Bubble color={offenseColor} />
+              <Bubble color={defenseColor} />
               <img className="h-5 mx-1" src={type.sprite} alt={type.name} onMouseEnter={() => setHoveredType(type)} onMouseLeave={() => setHoveredType(null)} />
             </div>
           );
@@ -70,6 +70,10 @@ export function TypeRelations() {
       </div>
     </div>
   )
+}
+
+function Bubble({ color }: { color: string }) {
+  return <div className={`w-5 h-5 border-2 border-gray-300 rounded-lg mx-1 ${color}`} />;
 }
 
 interface Coverage {
